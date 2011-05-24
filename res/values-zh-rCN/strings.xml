@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="number">编号:</string>
+    <string name="app_name">盘点</string>
+    <string name="enter_ok">确认</string>
+    <string name="name">名称:</string>
+    <string name="amount">数量:</string>
+</resources>

@@ -2,27 +2,39 @@ package com.gumpyang.Android.PanDian;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.Cursor;
-// import com.google.zxing.Reader;
+import com.google.zxing.Reader;
 import com.google.zxing.MultiFormatReader;
+import android.widget.Button;
+import android.net.Uri;
+import android.content.Intent;
+import android.content.ContentValues;
+import android.view.View;
+import android.provider.MediaStore;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
+import android.widget.ImageView;
+import android.view.Display;
 
 public class PanDian extends Activity {
-	// æ•°æ®åº“å¯¹è±¡
+	// æ•°æ®åº“å¯¹è±„1¤7
 	private SQLiteDatabase mSQLiteData = null;
 	// æ•°æ®åº“å
 	private final static String DATABASE_NAME = "test.db";
 	// è¡¨å
 	private final static String TABLE_NAME = "table1";
 	
-	// è¡¨ä¸­çš„å­—æ®µ
+	// è¡¨ä¸­çš„å­—æ®„1¤7
 	private final static String TABLE_ID = "_id";
 	private final static String TABLE_NUM = "num";
 	private final static String TABLE_NAM = "name";
 	private final static String TABLE_AMOUNT = "amount";
 	
 	// æ¡ç è¯»å–
-	private MultiFormatReader mMultiFormatReader;
+	private Reader mReader;
 	
 	// åˆ›å»ºè¡¨çš„sqlè¯­å¥
 	private final static String CREATE_TABLE = "CREATE TABLE "
@@ -33,13 +45,18 @@ public class PanDian extends Activity {
 		+ TABLE_NAM + " TEXT, "
 		+ TABLE_AMOUNT + " INTEGER)";
 	
+	private Button btn_scan;
+	private Uri imageFilePath;
+	private ImageView imageView;
+	private static final int RESULT_CODE = 1;
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        // åˆ›å»ºæˆ–æ‰“å¼€æ•°æ®åº“
+        // åˆ›å»ºæˆ–æ‰“å¼„1¤7æ•°æ®åº„1¤7
         mSQLiteData = this.openOrCreateDatabase(DATABASE_NAME, MODE_PRIVATE, null);
         
         // è·å–æ•°æ®åº“çš„cursor
@@ -49,9 +66,97 @@ public class PanDian extends Activity {
         	UpdataAdapter();
         }
         
-        mMultiFormatReader = new MultiFormatReader();
+        mReader = new MultiFormatReader();
+        
+        btn_scan = (Button)findViewById(R.id.scan_bt);
+        
+        btn_scan.setOnClickListener(new Button.OnClickListener() {
+        	public void onClick(View v)
+        	{
+        		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        		ContentValues values = new ContentValues(3);
+        		values.put(MediaStore.Images.Media.DISPLAY_NAME, "testing");
+        		values.put(MediaStore.Images.Media.DESCRIPTION, "this is description");
+        		values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        		imageFilePath = PanDian.this.getContentResolver().insert(
+        				MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        		intent.putExtra(MediaStore.EXTRA_OUTPUT, imageFilePath);
+        		startActivityForResult(intent, RESULT_CODE);
+        	}
+        });
     }
     
     public void UpdataAdapter() {
-    }
+    };
+    
+    /** */
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+    	super.onActivityResult(requestCode, resultCode, data);
+    	if(resultCode == RESULT_CODE){
+    		try {
+				Bundle extra = data.getExtras();
+				/**
+				 * È»¶øÎªÁË½ÚÔ¼ÄÚ´æµÄÏûºÄ£¬ÕâÀï·µ»ØµÄÍ¼Æ¬ÊÇÒ»¸ö121*162µÄËõÂÔÍ¼¡£
+				 * ÄÇÃ´ÈçºÎ·µ»ØÎÒÃÇĞèÒªµÄ´óÍ¼ÄØ£¿¿´ÉÏÃæ
+				 * È»¶ø´æ´¢ÁËÍ¼Æ¬¡£ÓĞÁËÍ¼Æ¬µÄ´æ´¢Î»ÖÃ£¬ÄÜ²»ÄÜÖ±½Ó½«Í¼Æ¬ÏÔÊ¾³öÀ´ÄØ¡·
+				 * Õâ¸öÎÊÌâ¾ÍÉè¼Æµ½¶ÔÓÚÍ¼Æ¬µÄ´¦ÀíºÍÏÔÊ¾£¬ÊÇ·Ç³£ÏûºÄÄÚ´æµÄ£¬¶ÔÓÚPCÀ´Ëµ¿ÉÄÜ²»ËãÊ²Ã´£¬µ«ÊÇ¶ÔÓÚÊÖ»úÀ´Ëµ
+				 * ºÜ¿ÉÄÜÊ¹ÄãµÄÓ¦ÓÃÒòÎªÄÚ´æºÄ¾¡¶øËÀÍö¡£²»¹ı»¹ºÃ£¬AndroidÎªÎÒÃÇ¿¼ÂÇµ½ÁËÕâÒ»µã
+				 * AndroidÖĞ¿ÉÒÔÊ¹ÓÃBitmapFactoryÀàºÍËûµÄÒ»¸öÄÚ²¿ÀàBitmapFactory.OptionsÀ´ÊµÏÖÍ¼Æ¬µÄ´¦ÀíºÍÏÔÊ¾
+				 * BitmapFactoryÊÇÒ»¸ö¹¤¾ßÀà£¬ÀïÃæ°üº¬ÁËºÜ¶àÖÖ»ñÈ¡BitmapµÄ·½·¨¡£BitmapFactory.OptionsÀàÖĞÓĞÒ»¸öinSampleSize£¬±ÈÈçÉè¶¨ËûµÄÖµÎª8£¬Ôò¼ÓÔØµ½ÄÚ´æÖĞµÄÍ¼Æ¬µÄ´óĞ¡½«
+				 * ÊÇÔ­Í¼Æ¬µÄ1/8´óĞ¡¡£ÕâÑù¾ÍÔ¶Ô¶½µµÍÁËÄÚ´æµÄÏûºÄ¡£
+				 * BitmapFactory.Options op = new BitmapFactory.Options();
+				 * op.inSampleSize = 8;
+				 * Bitmap pic = BitmapFactory.decodeFile(imageFilePath, op);
+				 * ÕâÊÇÒ»ÖÖ¿ì½İµÄ·½Ê½À´¼ÓÔØÒ»ÕÅ´óÍ¼£¬ÒòÎªËû²»ÓÃ¿¼ÂÇÕû¸öÏÔÊ¾ÆÁÄ»µÄ´óĞ¡ºÍÍ¼Æ¬µÄÔ­Ê¼´óĞ¡
+				 * È»¶øÓĞÊ±ºò£¬ÎÒĞèÒª¸ù¾İÎÒÃÇµÄÆÁÄ»À´×öÏàÓ¦µÄËõ·Å£¬ÈçºÎ²Ù×÷ÄØ£¿
+				 * 
+				 */
+				//Ê×ÏÈÈ¡µÃÆÁÄ»¶ÔÏó
+				Display display = this.getWindowManager().getDefaultDisplay();
+				//»ñÈ¡ÆÁÄ»µÄ¿íºÍ¸ß
+				int dw = display.getWidth();
+				int dh = display.getHeight();
+				/**
+				 * ÎªÁË¼ÆËãËõ·ÅµÄ±ÈÀı£¬ÎÒÃÇĞèÒª»ñÈ¡Õû¸öÍ¼Æ¬µÄ³ß´ç£¬¶ø²»ÊÇÍ¼Æ¬
+				 * BitmapFactory.OptionsÀàÖĞÓĞÒ»¸ö²¼¶ûĞÍ±äÁ¿inJustDecodeBounds£¬½«ÆäÉèÖÃÎªtrue
+				 * ÕâÑù£¬ÎÒÃÇ»ñÈ¡µ½µÄ¾ÍÊÇÍ¼Æ¬µÄ³ß´ç£¬¶ø²»ÓÃ¼ÓÔØÍ¼Æ¬ÁË¡£
+				 * µ±ÎÒÃÇÉèÖÃÕâ¸öÖµµÄÊ±ºò£¬ÎÒÃÇ½Ó×Å¾Í¿ÉÒÔ´ÓBitmapFactory.OptionsµÄoutWidthºÍoutHeightÖĞ»ñÈ¡µ½Öµ
+				 */
+				BitmapFactory.Options op = new BitmapFactory.Options();
+				//op.inSampleSize = 8;
+				op.inJustDecodeBounds = true;
+				//Bitmap pic = BitmapFactory.decodeFile(imageFilePath, op);//µ÷ÓÃÕâ¸ö·½·¨ÒÔºó£¬opÖĞµÄoutWidthºÍoutHeight¾ÍÓĞÖµÁË
+				//ÓÉÓÚÊ¹ÓÃÁËMediaStore´æ´¢£¬ÕâÀï¸ù¾İURI»ñÈ¡ÊäÈëÁ÷µÄĞÎÊ½
+				Bitmap pic = BitmapFactory.decodeStream(this
+						.getContentResolver().openInputStream(imageFilePath),
+						null, op);
+				int wRatio = (int) Math.ceil(op.outWidth / (float) dw); //¼ÆËã¿í¶È±ÈÀı
+				int hRatio = (int) Math.ceil(op.outHeight / (float) dh); //¼ÆËã¸ß¶È±ÈÀı
+				Log.v("Width Ratio:", wRatio + "");
+				Log.v("Height Ratio:", hRatio + "");
+				/**
+				 * ½ÓÏÂÀ´£¬ÎÒÃÇ¾ÍĞèÒªÅĞ¶ÏÊÇ·ñĞèÒªËõ·ÅÒÔ¼°µ½µ×¶Ô¿í»¹ÊÇ¸ß½øĞĞËõ·Å¡£
+				 * Èç¹û¸ßºÍ¿í²»ÊÇÈ«¶¼³¬³öÁËÆÁÄ»£¬ÄÇÃ´ÎŞĞèËõ·Å¡£
+				 * Èç¹û¸ßºÍ¿í¶¼³¬³öÁËÆÁÄ»´óĞ¡£¬ÔòÈçºÎÑ¡ÔñËõ·ÅÄØ¡·
+				 * ÕâĞèÒªÅĞ¶ÏwRatioºÍhRatioµÄ´óĞ¡
+				 * ´óµÄÒ»¸ö½«±»Ëõ·Å£¬ÒòÎªËõ·Å´óµÄÊ±£¬Ğ¡µÄÓ¦¸Ã×Ô¶¯½øĞĞÍ¬±ÈÂÊËõ·Å¡£
+				 * Ëõ·ÅÊ¹ÓÃµÄ»¹ÊÇinSampleSize±äÁ¿
+				 */
+				if (wRatio > 1 && hRatio > 1) {
+					if (wRatio > hRatio) {
+						op.inSampleSize = wRatio;
+					} else {
+						op.inSampleSize = hRatio;
+					}
+				}
+				op.inJustDecodeBounds = false; //×¢ÒâÕâÀï£¬Ò»¶¨ÒªÉèÖÃÎªfalse£¬ÒòÎªÉÏÃæÎÒÃÇ½«ÆäÉèÖÃÎªtrueÀ´»ñÈ¡Í¼Æ¬³ß´çÁË
+				pic = BitmapFactory.decodeStream(this.getContentResolver()
+						.openInputStream(imageFilePath), null, op);
+				imageView.setImageBitmap(pic);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+    	}
+   	}
 }

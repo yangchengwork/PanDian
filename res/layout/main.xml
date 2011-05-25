@@ -9,6 +9,12 @@
     android:layout_height="wrap_content" 
     android:text="@string/number"
     />
+<Button
+    android:layout_height="wrap_content"
+    android:text="@string/Scan"
+    android:id="@+id/scan_bt"
+    android:layout_width="wrap_content">
+</Button>
 <EditText
 	android:layout_height="wrap_content"
 	android:layout_width="fill_parent"

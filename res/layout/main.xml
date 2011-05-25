@@ -19,7 +19,7 @@
 	android:layout_height="wrap_content"
 	android:layout_width="fill_parent"
 	android:text="@string/number"
-	android:id="@+id/editText1">
+	android:id="@+id/barcode">
 </EditText>
 <Button
 	android:id="@+id/button1" 

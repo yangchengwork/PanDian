@@ -19,6 +19,7 @@ import android.widget.ImageView;
 import android.view.Display;
 
 import java.util.Calendar;
+import 	java.lang.Integer;
 
 public class PanDian extends Activity {
 	// 数据库对象
@@ -85,7 +86,7 @@ public class PanDian extends Activity {
         try {
         	mSQLiteData.execSQL(CREATE_PRODUCT_TABLE);
         } catch (Exception e) {
-        	UpdataAdapter();
+//        	UpdataAdapter();
         }
 
         try {
@@ -98,7 +99,7 @@ public class PanDian extends Activity {
         		+ TABLE_AMOUNT + " INTEGER)";
             mSQLiteData.execSQL(CREATE_DATE_TABLE);
         } catch (Exception e) {
-        	UpdataAdapter();
+//        	UpdataAdapter();
         }
 
         btn_scan.setOnClickListener(new Button.OnClickListener() {
@@ -127,30 +128,32 @@ public class PanDian extends Activity {
 		super.onDestroy();
 	}
 
-	public void UpdataAdapter() {
-/**    	
-    	Cursor cur = mSQLiteData.query(PRODUCT_TABLE_NAME, new String[] {TABLE_ID,
-    			TABLE_NUM, TABLE_NAME, TABLE_AMOUNT}, null, null, null, null,
-    			null);
-
-    	miCount = cur.getCount();
-    	if (cur != null && cur.getCount() >= 0)
-    	{
-    		
-    	}
-*/
-    }
-	
 	private void SaveData() {
 		ContentValues cv = new ContentValues();
 		switch (sqlcontrol) {
 		case 0:
-			cv.put(TABLE_NUM, "" + mBarCode.getText());
-			cv.put(TABLE_NAME, "" + mName.getText());
+			cv.put(TABLE_NUM, mBarCode.getText().toString());
+			cv.put(TABLE_NAME, mName.getText().toString());
 			mSQLiteData.insert(PRODUCT_TABLE_NAME, null, cv);
-			cv.put(TABLE_AMOUNT, "" + mAmount.getText());
+			cv.put(TABLE_AMOUNT, Integer.parseInt(mAmount.getText().toString()));
 			mSQLiteData.insert(PDATE, null, cv);
-			break;			
+			break;
+		case 1:
+			cv.put(TABLE_NUM, mBarCode.getText().toString());
+			cv.put(TABLE_NAME, mName.getText().toString());
+			cv.put(TABLE_AMOUNT, Integer.parseInt(mAmount.getText().toString()));
+			mSQLiteData.insert(PDATE, null, cv);
+			break;
+		case 2:
+			String amount = mAmount.getText().toString();
+			cv.put(TABLE_NUM, mBarCode.getText().toString());
+			cv.put(TABLE_NAME, mName.getText().toString());
+			cv.put(TABLE_AMOUNT, Integer.parseInt(amount));
+			mSQLiteData.update(PDATE, cv, TABLE_AMOUNT + "=" + amount, null);
+			mName.setText(amount);
+			break;
+		default:
+			break;
 		};
 		sqlcontrol = 0;
 	}
@@ -165,7 +168,7 @@ public class PanDian extends Activity {
     	}
         mBarCode.setText(num);
         
-        proCursor = QueryProduct(PRODUCT_TABLE_NAME, num);
+        proCursor = QueryTable(PRODUCT_TABLE_NAME, num);
         if (proCursor == null)
         {
         	mName.setText(null);
@@ -173,18 +176,30 @@ public class PanDian extends Activity {
         	sqlcontrol = 0;
         	return;
         }
+        ReadProduct(proCursor);
+        panCursor = QueryTable(PDATE, num);
         if (panCursor == null) {
+        	mAmount.setText("1");
         	sqlcontrol = 1;
+        	return;
         }
+        ReadPandian(panCursor);
+        sqlcontrol = 2;
     }
     
-    private Cursor QueryProduct(String table, String num) {
+    private void ReadProduct(Cursor cur) {
+    	mName.setText(cur.getString(cur.getColumnIndex(TABLE_NAME)));
+    }
+    private void ReadPandian(Cursor cur) {
+    	mAmount.setText(Integer.toString(cur.getInt(cur.getColumnIndex(TABLE_AMOUNT))));
+    }
+    
+    private Cursor QueryTable(String table, String num) {
     	Cursor mCursor = mSQLiteData.query(table, null,
     			"num='" + num + "'", null, null, null, null);
 
     	//mCursor不等于null,将标识指向第一条记录  
         if (mCursor != null && mCursor.getCount() > 0) {  
-        	mAmount.setText("" + mCursor.getCount());
             mCursor.moveToFirst();  
         } else {
         	mCursor = null;

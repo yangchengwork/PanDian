@@ -19,6 +19,8 @@
 	android:layout_height="wrap_content"
 	android:layout_width="fill_parent"
 	android:text="@string/number"
+    android:numeric="integer"
+    android:singleLine="true"
 	android:id="@+id/barcode">
 </EditText>
 <!-- 
@@ -30,7 +32,6 @@
 </Button>
  -->
 <TextView
-	android:id="@+id/textView1" 
 	android:layout_width="wrap_content" 
 	android:layout_height="wrap_content" 
 	android:text="@string/name">
@@ -50,7 +51,6 @@
 </Button>
  -->
 <TextView
-	android:id="@+id/textView2" 
 	android:layout_width="wrap_content" 
 	android:layout_height="wrap_content" 
 	android:text="@string/amount">
@@ -59,6 +59,7 @@
 	android:layout_height="wrap_content" 
 	android:layout_width="fill_parent" 
 	android:id="@+id/amount" 
+	android:numeric="integer"
 	android:text="@string/amount">
 </EditText>
 <Button 

@@ -11,7 +11,7 @@ import android.content.ContentValues;
 import android.view.View;
 import android.util.Log;
 
-import java.util.Calendar;
+// import java.util.Calendar;
 import 	java.lang.Integer;
 
 public class PanDian extends Activity {
@@ -44,13 +44,14 @@ public class PanDian extends Activity {
 	
 	private Button btn_scan;
 	private Button btn_ok;
+	private Button btn_new;
 	private EditText mBarCode;
 	private EditText mName;
 	private EditText mAmount;
 	
 	private int sqlcontrol = 0; // 0 需要加入产品表和盘点表 1 产品表中有需要加入盘点表 2 盘点表需要修改数量
 	
-	private final static boolean PC_TEST = false; // true;
+	private final static boolean PC_TEST = true; // false; // 
 
     /** Called when the activity is first created. */
     @Override
@@ -64,24 +65,17 @@ public class PanDian extends Activity {
         btn_ok = (Button)findViewById(R.id.button_ok);
         mName = (EditText)findViewById(R.id.name);
         mAmount = (EditText)findViewById(R.id.amount);
-/**        
-        Calendar calendar = Calendar.getInstance();
-        PDATE = "P" + calendar.get(Calendar.YEAR)
-        	+ calendar.get(Calendar.MONTH)
-        	+ calendar.get(Calendar.DAY_OF_MONTH)
-        	+ calendar.get(Calendar.HOUR_OF_DAY)
-        	+ calendar.get(Calendar.MINUTE);
-*/        
+        btn_new = (Button)findViewById(R.id.new_bt);
+
         // 创建或打开数据库
-//        String sdcard =  "" + android.os.Environment.getExternalStorageDirectory().getAbsolutePath();
-//        mName.setText(sdcard);
+
         mSQLiteData = this.openOrCreateDatabase(DATABASE_NAME, MODE_WORLD_READABLE, null);
         
         // 获取数据库的cursor
         try {
         	mSQLiteData.execSQL(CREATE_PRODUCT_TABLE);
         } catch (Exception e) {
-//        	UpdataAdapter();
+
         }
 
         try {
@@ -94,7 +88,7 @@ public class PanDian extends Activity {
         		+ TABLE_AMOUNT + " INTEGER)";
             mSQLiteData.execSQL(CREATE_DATE_TABLE);
         } catch (Exception e) {
-//        	UpdataAdapter();
+
         }
 
         btn_scan.setOnClickListener(new Button.OnClickListener() {
@@ -121,6 +115,20 @@ public class PanDian extends Activity {
         		sqlcontrol = 0;
         	}
         });
+        
+        btn_new.setOnClickListener(new Button.OnClickListener() {
+        	public void onClick(View v) {
+        		mSQLiteData.execSQL("DROP TABLE " + PDATE);
+            	String CREATE_DATE_TABLE = "CREATE TABLE "
+            		+ PDATE
+            		+ " (" + TABLE_ID
+            		+ " INTEGER PRIMARY KEY, "
+            		+ TABLE_NUM + " TEXT, "
+            		+ TABLE_NAME + " TEXT, "
+            		+ TABLE_AMOUNT + " INTEGER)";
+                mSQLiteData.execSQL(CREATE_DATE_TABLE);
+        	}
+        });
     }
     
 	@Override
@@ -137,9 +145,6 @@ public class PanDian extends Activity {
 			cv.put(TABLE_NUM, mBarCode.getText().toString());
 			cv.put(TABLE_NAME, mName.getText().toString());
 			mSQLiteData.insert(PRODUCT_TABLE_NAME, null, cv);
-			cv.put(TABLE_AMOUNT, Integer.parseInt(mAmount.getText().toString()));
-			mSQLiteData.insert(PDATE, null, cv);
-			break;
 		case 1:
 			cv.put(TABLE_NUM, mBarCode.getText().toString());
 			cv.put(TABLE_NAME, mName.getText().toString());
@@ -147,14 +152,12 @@ public class PanDian extends Activity {
 			mSQLiteData.insert(PDATE, null, cv);
 			break;
 		case 2:
-			String amount = mAmount.getText().toString();
 			cv.put(TABLE_NUM, mBarCode.getText().toString());
 			cv.put(TABLE_NAME, mName.getText().toString());
-			cv.put(TABLE_AMOUNT, Integer.parseInt(amount));
-			int ret = mSQLiteData.update(PDATE, cv, TABLE_ID + "=" 
+			cv.put(TABLE_AMOUNT, Integer.parseInt(mAmount.getText().toString()));
+			mSQLiteData.update(PDATE, cv, TABLE_ID + "=" 
 					+ Integer.toString(panCursor.getInt(panCursor.getColumnIndex(TABLE_ID))), 
 					null);
-			Log.d(TAG, "ret=" + ret);
 			break;
 		default:
 			break;
@@ -196,7 +199,6 @@ public class PanDian extends Activity {
     }
     private void ReadPandian(Cursor cur) {
     	mAmount.setText(Integer.toString(cur.getInt(cur.getColumnIndex(TABLE_AMOUNT))));
-    	Log.d(TAG, "test id=" + Integer.toString(cur.getInt(cur.getColumnIndex(TABLE_ID))));
     }
     
     private Cursor QueryTable(String table, String num) {
@@ -219,7 +221,7 @@ public class PanDian extends Activity {
         if (requestCode == 0) {
             if (resultCode == RESULT_OK) {
                 String contents = data.getStringExtra("SCAN_RESULT");
-                String format = data.getStringExtra("SCAN_RESULT_FORMAT");
+                // String format = data.getStringExtra("SCAN_RESULT_FORMAT");
                 // Handle successful scan
                 UpdateBarcode(contents);
             } else if (resultCode == RESULT_CANCELED) {

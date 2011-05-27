@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="number">Number:</string>
+    <string name="number">Number</string>
     <string name="app_name">Pan Dian</string>
     <string name="enter_ok">OK</string>
-    <string name="name">Name:</string>
-    <string name="amount">Amount:</string>
+    <string name="name">Name</string>
+    <string name="amount">Amount</string>
     <string name="Scan">Scan</string>
+    <string name="New">New</string>
 </resources>

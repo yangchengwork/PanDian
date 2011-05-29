@@ -1,15 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:scrollbars="none">
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
+<RelativeLayout android:id="@+id/relativeLayout1" android:layout_width="fill_parent" android:layout_height="wrap_content">
 <Button
     android:layout_height="wrap_content"
     android:text="@string/New"
     android:id="@+id/new_bt"
+    android:layout_alignParentLeft="true"
     android:layout_width="wrap_content">
 </Button>
+<Button
+    android:layout_height="wrap_content"
+    android:text="@string/Export"
+    android:id="@+id/export_bt"
+    android:layout_alignParentRight="true"
+    android:layout_width="wrap_content">
+</Button>
+</RelativeLayout>
 <TextView  
     android:layout_width="fill_parent" 
     android:layout_height="wrap_content" 
@@ -79,3 +93,4 @@
 </Button>
 </RelativeLayout>
 </LinearLayout>
+</ScrollView>

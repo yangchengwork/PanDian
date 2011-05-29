@@ -7,4 +7,5 @@
     <string name="amount">Amount</string>
     <string name="Scan">Scan</string>
     <string name="New">New</string>
+    <string name="Export">Export</string>
 </resources>

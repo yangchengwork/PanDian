@@ -12,11 +12,11 @@ import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.util.Log;
 
-// import java.util.Calendar;
+import java.util.Calendar;
 import 	java.lang.Integer;
 
 public class PanDian extends Activity {
-    private final static String TAG = "gumptest";
+    private final static String TAG = "PanDian";
     // 数据库对象
     private SQLiteDatabase mSQLiteData = null;
     // 数据库名
@@ -46,6 +46,7 @@ public class PanDian extends Activity {
     private static Button btn_scan;
     private static Button btn_ok;
     private static Button btn_new;
+    private static Button btn_export;
     private static EditText mBarCode;
     private static EditText mName;
     private static EditText mAmount;
@@ -58,12 +59,12 @@ public class PanDian extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate");
         setContentView(R.layout.main);
 
         btn_scan = (Button)findViewById(R.id.scan_bt);
         btn_ok = (Button)findViewById(R.id.button_ok);
         btn_new = (Button)findViewById(R.id.new_bt);
+        btn_export = (Button)findViewById(R.id.export_bt);
         mBarCode = (EditText)findViewById(R.id.barcode);
         mName = (EditText)findViewById(R.id.name);
         mAmount = (EditText)findViewById(R.id.amount);
@@ -132,10 +133,43 @@ public class PanDian extends Activity {
             }
         });
         
+        btn_export.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+/**            	
+                mSQLiteData.execSQL(".separator \", \"\n");
+                String sdcard =  android.os.Environment.getExternalStorageDirectory().getAbsolutePath().toString();
+                Calendar calendar = Calendar.getInstance();
+                String name = "Pandian_" + calendar.get(Calendar.YEAR)
+                				+ calendar.get(Calendar.MONTH)
+                                + calendar.get(Calendar.DAY_OF_MONTH)
+                                + calendar.get(Calendar.HOUR_OF_DAY)
+                                + calendar.get(Calendar.MINUTE)
+                                + ".csv";
+                mSQLiteData.execSQL(".output " + sdcard + "/" + name + "\n");
+                mSQLiteData.execSQL("select * from " + PDATE);
+*/
+            }
+        });
+        
         mBarCode.setOnFocusChangeListener(new OnFocusChangeListener(){
             public void onFocusChange(View v, boolean hasFocus) {
             	if(!hasFocus) {
             		UpdateBarcode(mBarCode.getText().toString());
+            	}
+            }
+        });
+        
+        mName.setOnFocusChangeListener(new OnFocusChangeListener(){
+            public void onFocusChange(View v, boolean hasFocus) {
+            	if(!hasFocus) {
+            		if (sqlcontrol > 0) {	// 产品表中已经存在，只是改名
+	                    ContentValues cv = new ContentValues();
+	                    cv.put(TABLE_NUM, mBarCode.getText().toString());
+	                    cv.put(TABLE_NAME, mName.getText().toString());
+	                    mSQLiteData.update(PRODUCT_TABLE_NAME, cv, TABLE_ID + "="
+	                                       + Integer.toString(proCursor.getInt(proCursor.getColumnIndex(TABLE_ID))),
+	                                       null);
+            		}
             	}
             }
         });
@@ -149,7 +183,6 @@ public class PanDian extends Activity {
 
     private void SaveData() {
         ContentValues cv = new ContentValues();
-        Log.d(TAG, "sqlcontrol=" + sqlcontrol);
         switch (sqlcontrol) {
         case 0:
             cv.put(TABLE_NUM, mBarCode.getText().toString());
@@ -229,7 +262,6 @@ public class PanDian extends Activity {
     /** */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, "onActivityResult");
         if (requestCode == 0) {
             if (resultCode == RESULT_OK) {
                 String contents = data.getStringExtra("SCAN_RESULT");

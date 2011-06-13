@@ -1,6 +1,7 @@
 package com.gumpyang.Android.PanDian;
 
 import android.app.Activity;
+
 import android.os.Bundle;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.Cursor;
@@ -14,6 +15,7 @@ import android.util.Log;
 
 import java.util.Calendar;
 import 	java.lang.Integer;
+import java.io.FileWriter;
 
 public class PanDian extends Activity {
     private final static String TAG = "PanDian";
@@ -53,7 +55,7 @@ public class PanDian extends Activity {
 
     private int sqlcontrol = 0; // 0 需要加入产品表和盘点表 1 产品表中有需要加入盘点表 2 盘点表需要修改数量
 
-    private final static boolean PC_TEST = true; // false; //
+    private final static boolean PC_TEST = false; // true; //   
 
     /** Called when the activity is first created. */
     @Override
@@ -97,13 +99,13 @@ public class PanDian extends Activity {
         btn_scan.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 if (PC_TEST) {
-                    UpdateBarcode("0123456789");
+                    UpdateBarcode("6901028075763");
                 } else {
                     Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-                    intent.setPackage("com.google.zxing.client.android");
+                    // intent.setPackage("com.google.zxing.client.android.SCAN");
                     intent.putExtra("SCAN_MODE", "ONE_D_MODE"); // "PRODUCT_MODE"); // "QR_CODE_MODE");
-                    intent.putExtra("SCAN_WIDTH", 800);
-                    intent.putExtra("SCAN_HEIGHT", 200);
+                    // intent.putExtra("SCAN_WIDTH", 800);
+                    // intent.putExtra("SCAN_HEIGHT", 200);
                     startActivityForResult(intent, 0);
                 }
             }
@@ -135,16 +137,46 @@ public class PanDian extends Activity {
         
         btn_export.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-/**            	
-                mSQLiteData.execSQL(".separator \", \"\n");
                 String sdcard =  android.os.Environment.getExternalStorageDirectory().getAbsolutePath().toString();
                 Calendar calendar = Calendar.getInstance();
-                String name = "Pandian_" + calendar.get(Calendar.YEAR)
-                				+ calendar.get(Calendar.MONTH)
-                                + calendar.get(Calendar.DAY_OF_MONTH)
-                                + calendar.get(Calendar.HOUR_OF_DAY)
-                                + calendar.get(Calendar.MINUTE)
-                                + ".csv";
+                String name = sdcard + String.format("/Pandian_%d%02d%02d.csv",  
+                	calendar.get(Calendar.YEAR),
+                				(calendar.get(Calendar.MONTH) + 1),
+                                calendar.get(Calendar.DATE));
+                // Log.i(TAG, "sdcard file name=" + name);
+                
+                Cursor mCursor = mSQLiteData.query(PDATE, new String[] {TABLE_NUM, TABLE_NAME, TABLE_AMOUNT},
+                		null, null, null, null, null);
+                if (mCursor == null || mCursor.getCount() == 0) {
+                	return;
+                }
+                try {
+                FileWriter fw = new FileWriter(name);
+ 
+                mCursor.moveToFirst();
+                do {
+                	String buf = String.format("%s, %s, %d\r\n",
+                			mCursor.getString(mCursor.getColumnIndex(TABLE_NUM)),
+                			mCursor.getString(mCursor.getColumnIndex(TABLE_NAME)),
+                			mCursor.getInt(mCursor.getColumnIndex(TABLE_AMOUNT))
+                			);
+                	fw.write(buf);
+/**
+                	Log.i(TAG, String.format("%s, %s, %d",
+                			mCursor.getString(mCursor.getColumnIndex(TABLE_NUM)),
+                			mCursor.getString(mCursor.getColumnIndex(TABLE_NAME)),
+                			mCursor.getInt(mCursor.getColumnIndex(TABLE_AMOUNT))
+                			)
+                			);
+*/
+                } while (mCursor.moveToNext());
+                fw.close();
+                } catch (Exception e) {
+
+                }
+ 
+/**
+                mSQLiteData.execSQL(".separator \", \"\n");
                 mSQLiteData.execSQL(".output " + sdcard + "/" + name + "\n");
                 mSQLiteData.execSQL("select * from " + PDATE);
 */
